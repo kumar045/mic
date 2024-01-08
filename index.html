@@ -6,14 +6,20 @@
     <title>WebRTC Audio Recorder with Speech Recognition</title>
     <style>
         button { margin: 10px; padding: 10px; }
+        #debug { margin-top: 20px; padding: 10px; background-color: #f0f0f0; }
     </style>
 </head>
 <body>
     <button id="startBtn">Start</button>
     <button id="stopBtn" disabled>Stop</button>
     <p id="transcription">Transcription: </p>
+    <div id="debug">Debug info will appear here</div>
 
     <script>
+        function updateDebug(message) {
+            document.getElementById("debug").innerHTML += '<p>' + message + '</p>';
+        }
+
         let mediaRecorder;
         let speechRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         speechRecognition.continuous = true;
@@ -25,18 +31,26 @@
                 .then(stream => {
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.start();
-                    
+                    updateDebug("MediaRecorder started");
+
                     speechRecognition.start();
+                    updateDebug("SpeechRecognition started");
 
                     document.getElementById("startBtn").disabled = true;
                     document.getElementById("stopBtn").disabled = false;
                 })
-                .catch(e => alert('Error accessing the microphone: ' + e.message));
+                .catch(e => {
+                    alert('Error accessing the microphone: ' + e.message);
+                    updateDebug('Error accessing the microphone: ' + e.message);
+                });
         };
 
         document.getElementById("stopBtn").onclick = () => {
             mediaRecorder.stop();
+            updateDebug("MediaRecorder stopped");
+
             speechRecognition.stop();
+            updateDebug("SpeechRecognition stopped");
 
             document.getElementById("startBtn").disabled = false;
             document.getElementById("stopBtn").disabled = true;
@@ -48,6 +62,7 @@
                 transcript += event.results[i][0].transcript;
             }
             document.getElementById("transcription").textContent = "Transcription: " + transcript;
+            updateDebug("Transcription updated");
         };
     </script>
 </body>
