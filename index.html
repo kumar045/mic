@@ -15,8 +15,7 @@
     <button id="startRecord">Start Recording</button>
     <button id="stopRecord" disabled>Stop Recording</button>
     <button id="playAudio" disabled>Play Audio</button>
-    <p id="interimTranscription">Interim Transcription: </p>
-    <p id="finalTranscription">Final Transcription: </p>
+    <p id="transcription">Transcription: </p>
 
     <script>
         if (!('webkitSpeechRecognition' in window) || !('MediaRecorder' in window)) {
@@ -66,16 +65,12 @@
 
             speechRecognition.onresult = (event) => {
                 let interimTranscript = '';
-                let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
                 }
-                document.getElementById("interimTranscription").innerHTML = "Interim Transcription: " + interimTranscript;
-                document.getElementById("finalTranscription").innerHTML = "Final Transcription: " + finalTranscript;
+                document.getElementById("transcription").innerHTML = "Transcription: " + interimTranscript;
             };
 
             speechRecognition.onerror = (event) => {
