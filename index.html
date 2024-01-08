@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Recorder with Real-time Speech to Text</title>
+    <title>Audio Recorder with Real-time Speech to Text (MediaStreamTrackRecorder)</title>
+    <script src="https://cdn.webrtc-experiment.com/MediaStreamTrackRecorder.js"></script>
     <style>
+        /* Your CSS styles */
         button {
             margin: 10px;
             padding: 10px;
         }
-        #debug {
+        #debug, #transcription {
             margin-top: 20px;
             border: 1px solid #ddd;
             padding: 10px;
@@ -29,13 +31,12 @@
             debugElement.innerHTML += '<br>' + message;
         }
 
-        if (!('webkitSpeechRecognition' in window) || !('MediaRecorder' in window)) {
-            alert("Your browser does not support MediaRecorder or SpeechRecognition. Please use Google Chrome.");
+        if (!('MediaStreamTrackRecorder' in window) || !('webkitSpeechRecognition' in window)) {
+            alert("Your browser doesn't support required features. Please use a modern browser.");
             appendToDebug("Browser does not support required features.");
         } else {
             let mediaRecorder;
             let audioChunks = [];
-            let audioBlob;
             let audio = new Audio();
             let speechRecognition = new webkitSpeechRecognition();
             speechRecognition.continuous = true;
@@ -46,12 +47,16 @@
             document.getElementById("startRecord").onclick = () => {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
-                        mediaRecorder = new MediaRecorder(stream);
+                        const audioTrack = stream.getAudioTracks()[0];
+                        mediaRecorder = new MediaStreamTrackRecorder(audioTrack);
+                        mediaRecorder.mimeType = 'audio/webm';
                         mediaRecorder.start();
-                        appendToDebug("Recording started.");
-                        mediaRecorder.ondataavailable = event => {
-                            audioChunks.push(event.data);
+
+                        mediaRecorder.ondataavailable = function(blob) {
+                            audioChunks.push(blob);
                         };
+
+                        appendToDebug("Recording started.");
                         speechRecognition.start();
                         appendToDebug("Speech recognition started.");
                         document.getElementById("startRecord").disabled = true;
@@ -69,10 +74,10 @@
                 document.getElementById("stopRecord").disabled = true;
                 document.getElementById("playAudio").disabled = false;
 
-                mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav; codecs=opus' });
+                mediaRecorder.ondataavailable = () => {
+                    const audioBlob = new Blob(audioChunks, { 'type': 'audio/webm' });
                     audioChunks = [];
-                    audio.src = window.URL.createObjectURL(audioBlob);
+                    audio.src = URL.createObjectURL(audioBlob);
                     appendToDebug("Audio processed and ready to play.");
                 };
             };
