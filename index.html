@@ -9,6 +9,11 @@
             margin: 10px;
             padding: 10px;
         }
+        #debug {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -16,10 +21,17 @@
     <button id="stopRecord" disabled>Stop Recording</button>
     <button id="playAudio" disabled>Play Audio</button>
     <p id="transcription">Transcription: </p>
+    <div id="debug">Debug Info:</div>
 
     <script>
+        function appendToDebug(message) {
+            const debugElement = document.getElementById("debug");
+            debugElement.innerHTML += '<br>' + message;
+        }
+
         if (!('webkitSpeechRecognition' in window) || !('MediaRecorder' in window)) {
             alert("Your browser does not support MediaRecorder or SpeechRecognition. Please use Google Chrome.");
+            appendToDebug("Browser does not support required features.");
         } else {
             let mediaRecorder;
             let audioChunks = [];
@@ -29,26 +41,31 @@
             speechRecognition.continuous = true;
             speechRecognition.interimResults = true;
             speechRecognition.lang = 'en-US';
+            appendToDebug("Initialization complete.");
 
             document.getElementById("startRecord").onclick = () => {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
                         mediaRecorder = new MediaRecorder(stream);
                         mediaRecorder.start();
+                        appendToDebug("Recording started.");
                         mediaRecorder.ondataavailable = event => {
                             audioChunks.push(event.data);
                         };
                         speechRecognition.start();
+                        appendToDebug("Speech recognition started.");
                         document.getElementById("startRecord").disabled = true;
                         document.getElementById("stopRecord").disabled = false;
                     }).catch(e => {
-                        alert("Error accessing microphone:", e);
+                        console.error("Error accessing microphone:", e);
+                        appendToDebug("Error accessing microphone: " + e.message);
                     });
             };
 
             document.getElementById("stopRecord").onclick = () => {
                 mediaRecorder.stop();
                 speechRecognition.stop();
+                appendToDebug("Recording and speech recognition stopped.");
                 document.getElementById("stopRecord").disabled = true;
                 document.getElementById("playAudio").disabled = false;
 
@@ -56,11 +73,13 @@
                     audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav; codecs=opus' });
                     audioChunks = [];
                     audio.src = window.URL.createObjectURL(audioBlob);
+                    appendToDebug("Audio processed and ready to play.");
                 };
             };
 
             document.getElementById("playAudio").onclick = () => {
                 audio.play();
+                appendToDebug("Playing audio.");
             };
 
             speechRecognition.onresult = (event) => {
@@ -71,10 +90,12 @@
                     }
                 }
                 document.getElementById("transcription").innerHTML = "Transcription: " + interimTranscript;
+                appendToDebug("Transcription updated.");
             };
 
             speechRecognition.onerror = (event) => {
-                alert("Speech Recognition Error:", event.error);
+                console.error("Speech Recognition Error:", event.error);
+                appendToDebug("Speech Recognition Error: " + event.error);
             };
         }
     </script>
