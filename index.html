@@ -3,106 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Recorder with Real-time Speech to Text (MediaStreamTrackRecorder)</title>
-    <script src="https://cdn.webrtc-experiment.com/MediaStreamTrackRecorder.js"></script>
+    <title>WebRTC Audio Recorder with Speech Recognition</title>
     <style>
-        /* Your CSS styles */
-        button {
-            margin: 10px;
-            padding: 10px;
-        }
-        #debug, #transcription {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
+        button { margin: 10px; padding: 10px; }
     </style>
 </head>
 <body>
-    <button id="startRecord">Start Recording</button>
-    <button id="stopRecord" disabled>Stop Recording</button>
-    <button id="playAudio" disabled>Play Audio</button>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
     <p id="transcription">Transcription: </p>
-    <div id="debug">Debug Info:</div>
 
     <script>
-        function appendToDebug(message) {
-            const debugElement = document.getElementById("debug");
-            debugElement.innerHTML += '<br>' + message;
-        }
+        let mediaRecorder;
+        let speechRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        speechRecognition.continuous = true;
+        speechRecognition.interimResults = true;
+        speechRecognition.lang = 'en-US';
 
-        if (!('MediaStreamTrackRecorder' in window) || !('webkitSpeechRecognition' in window)) {
-            alert("Your browser doesn't support required features. Please use a modern browser.");
-            appendToDebug("Browser does not support required features.");
-        } else {
-            let mediaRecorder;
-            let audioChunks = [];
-            let audio = new Audio();
-            let speechRecognition = new webkitSpeechRecognition();
-            speechRecognition.continuous = true;
-            speechRecognition.interimResults = true;
-            speechRecognition.lang = 'en-US';
-            appendToDebug("Initialization complete.");
+        document.getElementById("startBtn").onclick = () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    
+                    speechRecognition.start();
 
-            document.getElementById("startRecord").onclick = () => {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        const audioTrack = stream.getAudioTracks()[0];
-                        mediaRecorder = new MediaStreamTrackRecorder(audioTrack);
-                        mediaRecorder.mimeType = 'audio/webm';
-                        mediaRecorder.start();
+                    document.getElementById("startBtn").disabled = true;
+                    document.getElementById("stopBtn").disabled = false;
+                })
+                .catch(e => alert('Error accessing the microphone: ' + e.message));
+        };
 
-                        mediaRecorder.ondataavailable = function(blob) {
-                            audioChunks.push(blob);
-                        };
+        document.getElementById("stopBtn").onclick = () => {
+            mediaRecorder.stop();
+            speechRecognition.stop();
 
-                        appendToDebug("Recording started.");
-                        speechRecognition.start();
-                        appendToDebug("Speech recognition started.");
-                        document.getElementById("startRecord").disabled = true;
-                        document.getElementById("stopRecord").disabled = false;
-                    }).catch(e => {
-                        console.error("Error accessing microphone:", e);
-                        appendToDebug("Error accessing microphone: " + e.message);
-                    });
-            };
+            document.getElementById("startBtn").disabled = false;
+            document.getElementById("stopBtn").disabled = true;
+        };
 
-            document.getElementById("stopRecord").onclick = () => {
-                mediaRecorder.stop();
-                speechRecognition.stop();
-                appendToDebug("Recording and speech recognition stopped.");
-                document.getElementById("stopRecord").disabled = true;
-                document.getElementById("playAudio").disabled = false;
-
-                mediaRecorder.ondataavailable = () => {
-                    const audioBlob = new Blob(audioChunks, { 'type': 'audio/webm' });
-                    audioChunks = [];
-                    audio.src = URL.createObjectURL(audioBlob);
-                    appendToDebug("Audio processed and ready to play.");
-                };
-            };
-
-            document.getElementById("playAudio").onclick = () => {
-                audio.play();
-                appendToDebug("Playing audio.");
-            };
-
-            speechRecognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                document.getElementById("transcription").innerHTML = "Transcription: " + interimTranscript;
-                appendToDebug("Transcription updated.");
-            };
-
-            speechRecognition.onerror = (event) => {
-                console.error("Speech Recognition Error:", event.error);
-                appendToDebug("Speech Recognition Error: " + event.error);
-            };
-        }
+        speechRecognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                transcript += event.results[i][0].transcript;
+            }
+            document.getElementById("transcription").textContent = "Transcription: " + transcript;
+        };
     </script>
 </body>
 </html>
