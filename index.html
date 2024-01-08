@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Recording and Speech Recognition</title>
+    <title>Sequential Speech Recognition and Recording</title>
     <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
     <style>
         button { margin: 10px; padding: 10px; }
@@ -11,33 +11,25 @@
     </style>
 </head>
 <body>
-    <button id="startBtn">Start</button>
-    <button id="stopBtn" disabled>Stop</button>
+    <button id="startRecognition">Start Recognition</button>
+    <button id="startRecording" disabled>Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
     <p id="transcription">Transcription: </p>
 
     <script>
         let recorder, recognition;
-        let isRecording = false;
+        let stream;
 
-        document.getElementById("startBtn").addEventListener("click", function() {
+        document.getElementById("startRecognition").addEventListener("click", function() {
             this.disabled = true;
-            document.getElementById("stopBtn").disabled = false;
-
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-                // Clone the stream for Speech Recognition
-                let clonedStream = stream.clone();
-                
-                // Initialize the recorder
-                recorder = RecordRTC(stream, { type: 'audio' });
-                recorder.startRecording();
-
-                // Initialize Speech Recognition
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(mediaStream) {
+                stream = mediaStream;
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.continuous = true;
+                recognition.continuous = false;
                 recognition.interimResults = true;
                 recognition.lang = 'en-US';
                 recognition.start();
-                
+
                 recognition.onresult = function(event) {
                     let transcript = '';
                     for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -46,33 +38,33 @@
                     document.getElementById("transcription").textContent = "Transcription: " + transcript;
                 };
 
+                recognition.onend = function() {
+                    document.getElementById("startRecording").disabled = false;
+                };
+
                 recognition.onerror = function(event) {
                     console.error('Speech Recognition Error:', event.error);
                 };
-
-                isRecording = true;
             }).catch(function(error) {
-                console.error('MediaDevices.getUserMedia() error:', error);
-                resetButtons();
+                console.error('getUserMedia error:', error);
             });
         });
 
-        document.getElementById("stopBtn").addEventListener("click", function() {
-            if (isRecording) {
-                recorder.stopRecording(function() {
-                    let blob = recorder.getBlob();
-                    // Do something with the recorded blob
-                });
-                recognition.stop();
-            }
-            resetButtons();
+        document.getElementById("startRecording").addEventListener("click", function() {
+            this.disabled = true;
+            document.getElementById("stopRecording").disabled = false;
+            recorder = RecordRTC(stream, { type: 'audio' });
+            recorder.startRecording();
         });
 
-        function resetButtons() {
-            document.getElementById("startBtn").disabled = false;
-            document.getElementById("stopBtn").disabled = true;
-            isRecording = false;
-        }
+        document.getElementById("stopRecording").addEventListener("click", function() {
+            recorder.stopRecording(function() {
+                let blob = recorder.getBlob();
+                // Handle the recorded blob here
+            });
+            document.getElementById("startRecognition").disabled = false;
+            this.disabled = true;
+        });
     </script>
 </body>
 </html>
