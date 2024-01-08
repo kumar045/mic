@@ -26,16 +26,17 @@
         document.getElementById("startBtn").onclick = () => {
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
-                    // Initialize RecordRTC with the audio stream
+                    // Initialize speech recognition
+                    speechRecognition.start();
+
+                    // Initialize RecordRTC
                     recorder = RecordRTC(stream, {
                         type: 'audio',
                         mimeType: 'audio/webm',
-                        recorderType: StereoAudioRecorder // Use the StereoAudioRecorder for better audio quality
+                        recorderType: StereoAudioRecorder
                     });
-                    recorder.startRecording();
 
-                    // Start the SpeechRecognition
-                    speechRecognition.start();
+                    setTimeout(() => recorder.startRecording(), 500); // Delay recording start to ensure no conflict
 
                     document.getElementById("startBtn").disabled = true;
                     document.getElementById("stopBtn").disabled = false;
@@ -46,7 +47,7 @@
         document.getElementById("stopBtn").onclick = () => {
             recorder.stopRecording(() => {
                 let recordedBlob = recorder.getBlob();
-                // Do something with the recorded blob here
+                // Process recorded audio here
             });
 
             speechRecognition.stop();
@@ -61,6 +62,10 @@
                 transcript += event.results[i][0].transcript;
             }
             document.getElementById("transcription").textContent = "Transcription: " + transcript;
+        };
+
+        speechRecognition.onerror = (event) => {
+            alert("Speech Recognition Error: " + event.error);
         };
     </script>
 </body>
