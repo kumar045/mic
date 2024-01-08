@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RecordRTC with Speech Recognition</title>
+    <title>Real-time Recording and Speech Recognition</title>
     <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
     <style>
         button { margin: 10px; padding: 10px; }
@@ -17,56 +16,63 @@
     <p id="transcription">Transcription: </p>
 
     <script>
-        let recorder;
-        let speechRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        speechRecognition.continuous = true;
-        speechRecognition.interimResults = true;
-        speechRecognition.lang = 'en-US';
+        let recorder, recognition;
+        let isRecording = false;
 
-        document.getElementById("startBtn").onclick = () => {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    // Initialize speech recognition
-                    speechRecognition.start();
+        document.getElementById("startBtn").addEventListener("click", function() {
+            this.disabled = true;
+            document.getElementById("stopBtn").disabled = false;
 
-                    // Initialize RecordRTC
-                    recorder = RecordRTC(stream, {
-                        type: 'audio',
-                        mimeType: 'audio/webm',
-                        recorderType: StereoAudioRecorder
-                    });
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                // Clone the stream for Speech Recognition
+                let clonedStream = stream.clone();
+                
+                // Initialize the recorder
+                recorder = RecordRTC(stream, { type: 'audio' });
+                recorder.startRecording();
 
-                    setTimeout(() => recorder.startRecording(), 500); // Delay recording start to ensure no conflict
+                // Initialize Speech Recognition
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                recognition.start();
+                
+                recognition.onresult = function(event) {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById("transcription").textContent = "Transcription: " + transcript;
+                };
 
-                    document.getElementById("startBtn").disabled = true;
-                    document.getElementById("stopBtn").disabled = false;
-                })
-                .catch(e => alert('Error accessing the microphone: ' + e.message));
-        };
+                recognition.onerror = function(event) {
+                    console.error('Speech Recognition Error:', event.error);
+                };
 
-        document.getElementById("stopBtn").onclick = () => {
-            recorder.stopRecording(() => {
-                let recordedBlob = recorder.getBlob();
-                // Process recorded audio here
+                isRecording = true;
+            }).catch(function(error) {
+                console.error('MediaDevices.getUserMedia() error:', error);
+                resetButtons();
             });
+        });
 
-            speechRecognition.stop();
+        document.getElementById("stopBtn").addEventListener("click", function() {
+            if (isRecording) {
+                recorder.stopRecording(function() {
+                    let blob = recorder.getBlob();
+                    // Do something with the recorded blob
+                });
+                recognition.stop();
+            }
+            resetButtons();
+        });
 
+        function resetButtons() {
             document.getElementById("startBtn").disabled = false;
             document.getElementById("stopBtn").disabled = true;
-        };
-
-        speechRecognition.onresult = (event) => {
-            let transcript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                transcript += event.results[i][0].transcript;
-            }
-            document.getElementById("transcription").textContent = "Transcription: " + transcript;
-        };
-
-        speechRecognition.onerror = (event) => {
-            alert("Speech Recognition Error: " + event.error);
-        };
+            isRecording = false;
+        }
     </script>
 </body>
 </html>
