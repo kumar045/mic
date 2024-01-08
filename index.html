@@ -29,14 +29,10 @@
             debugElement.innerHTML += '<br>' + message;
         }
 
-        if (!('webkitSpeechRecognition' in window) || !('MediaRecorder' in window)) {
-            alert("Your browser does not support MediaRecorder or SpeechRecognition. Please use Google Chrome.");
-            appendToDebug("Browser does not support required features.");
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("Your browser does not support SpeechRecognition. Please use Google Chrome.");
+            appendToDebug("Browser does not support SpeechRecognition.");
         } else {
-            let mediaRecorder;
-            let audioChunks = [];
-            let audioBlob;
-            let audio = new Audio();
             let speechRecognition = new webkitSpeechRecognition();
             speechRecognition.continuous = true;
             speechRecognition.interimResults = true;
@@ -46,12 +42,6 @@
             document.getElementById("startRecord").onclick = () => {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(stream => {
-                        mediaRecorder = new MediaRecorder(stream);
-                        mediaRecorder.start();
-                        appendToDebug("Recording started.");
-                        mediaRecorder.ondataavailable = event => {
-                            audioChunks.push(event.data);
-                        };
                         speechRecognition.start();
                         appendToDebug("Speech recognition started.");
                         document.getElementById("startRecord").disabled = true;
@@ -63,33 +53,18 @@
             };
 
             document.getElementById("stopRecord").onclick = () => {
-                mediaRecorder.stop();
                 speechRecognition.stop();
-                appendToDebug("Recording and speech recognition stopped.");
+                appendToDebug("Speech recognition stopped.");
                 document.getElementById("stopRecord").disabled = true;
-                document.getElementById("playAudio").disabled = false;
-
-                mediaRecorder.onstop = () => {
-                    audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav; codecs=opus' });
-                    audioChunks = [];
-                    audio.src = window.URL.createObjectURL(audioBlob);
-                    appendToDebug("Audio processed and ready to play.");
-                };
-            };
-
-            document.getElementById("playAudio").onclick = () => {
-                audio.play();
-                appendToDebug("Playing audio.");
+                document.getElementById("startRecord").disabled = false;
             };
 
             speechRecognition.onresult = (event) => {
-                let interimTranscript = '';
+                let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
+                    transcript += event.results[i][0].transcript;
                 }
-                document.getElementById("transcription").innerHTML = "Transcription: " + interimTranscript;
+                document.getElementById("transcription").innerHTML = "Transcription: " + transcript;
                 appendToDebug("Transcription updated.");
             };
 
