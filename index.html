@@ -42,7 +42,7 @@
                         document.getElementById("startRecord").disabled = true;
                         document.getElementById("stopRecord").disabled = false;
                     }).catch(e => {
-                        console.error("Error accessing microphone:", e);
+                        alert("Error accessing microphone:", e);
                     });
             };
 
@@ -74,7 +74,7 @@
             };
 
             speechRecognition.onerror = (event) => {
-                console.error("Speech Recognition Error:", event.error);
+                alert("Speech Recognition Error:", event.error);
             };
         }
     </script>
