@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Audio Recorder with Speech Recognition</title>
+    <title>RecordRTC with Speech Recognition</title>
+    <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
     <style>
         button { margin: 10px; padding: 10px; }
         #transcription { margin-top: 20px; padding: 10px; }
@@ -15,7 +17,7 @@
     <p id="transcription">Transcription: </p>
 
     <script>
-        let mediaRecorder;
+        let recorder;
         let speechRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         speechRecognition.continuous = true;
         speechRecognition.interimResults = true;
@@ -24,14 +26,15 @@
         document.getElementById("startBtn").onclick = () => {
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
-                    // Clone the stream for separate use
-                    const clonedStream = stream.clone();
-                    
-                    // Initialize MediaRecorder with the cloned stream
-                    mediaRecorder = new MediaRecorder(clonedStream);
-                    mediaRecorder.start();
+                    // Initialize RecordRTC with the audio stream
+                    recorder = RecordRTC(stream, {
+                        type: 'audio',
+                        mimeType: 'audio/webm',
+                        recorderType: StereoAudioRecorder // Use the StereoAudioRecorder for better audio quality
+                    });
+                    recorder.startRecording();
 
-                    // Use the original stream for SpeechRecognition
+                    // Start the SpeechRecognition
                     speechRecognition.start();
 
                     document.getElementById("startBtn").disabled = true;
@@ -41,7 +44,11 @@
         };
 
         document.getElementById("stopBtn").onclick = () => {
-            mediaRecorder.stop();
+            recorder.stopRecording(() => {
+                let recordedBlob = recorder.getBlob();
+                // Do something with the recorded blob here
+            });
+
             speechRecognition.stop();
 
             document.getElementById("startBtn").disabled = false;
