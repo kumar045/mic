@@ -57,6 +57,7 @@
         };
 
         speechRecognition.onresult = (event) => {
+            updateDebug("Speech Recognition result is coming")
             let transcript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 transcript += event.results[i][0].transcript;
