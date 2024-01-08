@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder with Real-time Speech to Text</title>
+    <style>
+        button {
+            margin: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button id="startRecord">Start Recording</button>
+    <button id="stopRecord" disabled>Stop Recording</button>
+    <button id="playAudio" disabled>Play Audio</button>
+    <p id="transcription">Transcription: </p>
+
+    <script>
+        if (!('webkitSpeechRecognition' in window) || !('MediaRecorder' in window)) {
+            alert("Your browser does not support MediaRecorder or SpeechRecognition. Please use Google Chrome.");
+        } else {
+            let mediaRecorder;
+            let audioChunks = [];
+            let audioBlob;
+            let audio = new Audio();
+            let speechRecognition = new webkitSpeechRecognition();
+            speechRecognition.continuous = true;
+            speechRecognition.interimResults = true;
+            speechRecognition.lang = 'en-US';
+
+            document.getElementById("startRecord").onclick = () => {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                        };
+                        speechRecognition.start();
+                        document.getElementById("startRecord").disabled = true;
+                        document.getElementById("stopRecord").disabled = false;
+                    }).catch(e => {
+                        console.error("Error accessing microphone:", e);
+                    });
+            };
+
+            document.getElementById("stopRecord").onclick = () => {
+                mediaRecorder.stop();
+                speechRecognition.stop();
+                document.getElementById("stopRecord").disabled = true;
+                document.getElementById("playAudio").disabled = false;
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav; codecs=opus' });
+                    audioChunks = [];
+                    audio.src = window.URL.createObjectURL(audioBlob);
+                };
+            };
+
+            document.getElementById("playAudio").onclick = () => {
+                audio.play();
+            };
+
+            speechRecognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                document.getElementById("transcription").innerHTML = "Transcription: " + interimTranscript;
+            };
+
+            speechRecognition.onerror = (event) => {
+                console.error("Speech Recognition Error:", event.error);
+            };
+        }
+    </script>
+</body>
+</html>
