@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequential Speech Recognition and Recording</title>
-    <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+    <title>Speech Recognition with Audio Context</title>
     <style>
         button { margin: 10px; padding: 10px; }
         #transcription { margin-top: 20px; padding: 10px; }
@@ -12,18 +11,22 @@
 </head>
 <body>
     <button id="startRecognition">Start Recognition</button>
-    <button id="startRecording" disabled>Start Recording</button>
-    <button id="stopRecording" disabled>Stop Recording</button>
     <p id="transcription">Transcription: </p>
 
     <script>
-        let recorder, recognition;
-        let stream;
+        let recognition, audioContext, mediaStreamSource;
 
         document.getElementById("startRecognition").addEventListener("click", function() {
             this.disabled = true;
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(mediaStream) {
-                stream = mediaStream;
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                // Initialize webkitAudioContext
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+                // Do something with the audio context and media stream source
+                // For example, you can connect it to an analyzer or other audio nodes
+
+                // Initialize SpeechRecognition
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.continuous = false;
                 recognition.interimResults = true;
@@ -39,7 +42,7 @@
                 };
 
                 recognition.onend = function() {
-                    document.getElementById("startRecording").disabled = false;
+                    document.getElementById("startRecognition").disabled = false;
                 };
 
                 recognition.onerror = function(event) {
@@ -48,22 +51,6 @@
             }).catch(function(error) {
                 console.error('getUserMedia error:', error);
             });
-        });
-
-        document.getElementById("startRecording").addEventListener("click", function() {
-            this.disabled = true;
-            document.getElementById("stopRecording").disabled = false;
-            recorder = RecordRTC(stream, { type: 'audio' });
-            recorder.startRecording();
-        });
-
-        document.getElementById("stopRecording").addEventListener("click", function() {
-            recorder.stopRecording(function() {
-                let blob = recorder.getBlob();
-                // Handle the recorded blob here
-            });
-            document.getElementById("startRecognition").disabled = false;
-            this.disabled = true;
         });
     </script>
 </body>
