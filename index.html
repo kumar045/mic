@@ -7,11 +7,10 @@
 </head>
 <body>
     <h1>Speech Recognition</h1>
-    <!-- Commented out the first result section -->
-    <!-- <div>
+    <div>
         <h2>Result 1:</h2>
         <p id="result1"></p>
-    </div> -->
+    </div>
     <div>
         <h2>Result 2:</h2>
         <p id="result2"></p>
@@ -19,27 +18,23 @@
 
     <script>
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        // Commented out the first recognition instance
-        // const recognition1 = new SpeechRecognition();
+        const recognition1 = new SpeechRecognition();
         const recognition2 = new SpeechRecognition();
 
-        // Commented out setting lang for the first recognition instance
-        // recognition1.lang = 'en-US';
+        recognition1.lang = 'en-US';
         recognition2.lang = 'en-US';
 
-        // Commented out event handling for the first recognition instance
-        // recognition1.onresult = function(event) {
-        //     const transcript = event.results[0][0].transcript;
-        //     document.getElementById("result1").textContent = transcript;
-        // };
+        recognition1.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById("result1").textContent = transcript;
+        };
 
         recognition2.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
             document.getElementById("result2").textContent = transcript;
         };
 
-        // Commented out starting the first recognition instance
-        // recognition1.start();
+        recognition1.start();
         recognition2.start();
     </script>
 </body>
