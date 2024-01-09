@@ -2,68 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Speech Recognition with MediaRecorder and Web Worker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition</title>
 </head>
 <body>
-    <button id="startRecognition">Start Recognition</button>
-    <p id="transcription">Transcription: </p>
+    <h1>Speech Recognition</h1>
+    <div>
+        <h2>Result 1:</h2>
+        <p id="result1"></p>
+    </div>
+    <div>
+        <h2>Result 2:</h2>
+        <p id="result2"></p>
+    </div>
 
     <script>
-        let recognition, mediaRecorder, audioBlob;
-        const worker = new Worker('worker.js');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition1 = new SpeechRecognition();
+        const recognition2 = new SpeechRecognition();
 
-        document.getElementById("startRecognition").addEventListener("click", function() {
-            this.disabled = true;
-            navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(function(stream) {
-                // Initialize SpeechRecognition
-                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.continuous = false;
-                recognition.interimResults = true;
-                recognition.lang = 'en-US';
-                recognition.start();
+        recognition1.lang = 'en-US';
+        recognition2.lang = 'en-US';
 
-                recognition.onresult = function(event) {
-                    let transcript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        transcript += event.results[i][0].transcript;
-                    }
-                    document.getElementById("transcription").textContent = "Transcription: " + transcript;
-                };
-
-                recognition.onend = function() {
-                    // Start MediaRecorder after speech recognition ends
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.start();
-
-                    let audioChunks = [];
-                    mediaRecorder.ondataavailable = function(event) {
-                        audioChunks.push(event.data);
-                    };
-
-                    mediaRecorder.onstop = function() {
-                        audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav' });
-                        worker.postMessage({ type: 'processAudio', data: audioBlob });
-                        audioChunks = [];
-                    };
-
-                    // Stop recording after 5 seconds
-                    setTimeout(() => {
-                        mediaRecorder.stop();
-                    }, 5000);
-                };
-
-                recognition.onerror = function(event) {
-                    console.error('Speech Recognition Error:', event.error);
-                };
-            }).catch(function(error) {
-                console.error('getUserMedia error:', error);
-            });
-        });
-
-        worker.onmessage = function(event) {
-            console.log('Message from worker:', event.data);
+        recognition1.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById("result1").textContent = transcript;
         };
+
+        recognition2.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById("result2").textContent = transcript;
+        };
+
+        recognition1.start();
+        recognition2.start();
     </script>
 </body>
 </html>
