@@ -3,7 +3,6 @@
 <head>
     <title>Speech Recognition and Audio Processing</title>
     <style>
-        /* Add your CSS styles here */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -22,7 +21,8 @@
 
     <script>
         // Checking for browser compatibility
-        if (!('webkitSpeechRecognition' in window) || !('AudioContext' in window)) {
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!('webkitSpeechRecognition' in window) || !(AudioContext)) {
             alert('Your browser does not support the required features. Try using Google Chrome.');
         } else {
             var that = this;
@@ -33,22 +33,18 @@
 
             recognition.onstart = function() {
                 var context = new AudioContext();
-                navigator.webkitGetUserMedia(
-                    {
-                        audio: true
-                    }, 
-                    function(stream) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(function(stream) {
                         var liveSource = context.createMediaStreamSource(stream);
-                        var levelChecker = context.createScriptProcessor(1024, 1 ,1);
+                        var levelChecker = context.createScriptProcessor(1024, 1, 1);
 
                         liveSource.connect(levelChecker);
                         levelChecker.connect(context.destination);
                         levelChecker.onaudioprocess = that.processAudio;
-                    },
-                    function(err) {
-                        console.log('The following gUM error occurred: ' + err);
-                    }
-                );
+                    })
+                    .catch(function(err) {
+                        console.error('The following getUserMedia error occurred: ' + err);
+                    });
                 that.isRunning(true);
             };
 
