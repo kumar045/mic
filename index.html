@@ -3,39 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech Recognition</title>
+    <title>Speech Recognition with Real-Time Transcriptions</title>
 </head>
 <body>
-    <h1>Speech Recognition</h1>
-    <div>
-        <h2>Result 1:</h2>
-        <p id="result1"></p>
-    </div>
-    <div>
-        <h2>Result 2:</h2>
-        <p id="result2"></p>
-    </div>
+    <button id="startRecognition">Start Recognition</button>
+    <p id="transcription1">Transcription 1: </p>
+    <p id="transcription2">Transcription 2: </p>
 
     <script>
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition1 = new SpeechRecognition();
-        const recognition2 = new SpeechRecognition();
+        let recognition;
 
-        recognition1.lang = 'en-US';
-        recognition2.lang = 'en-US';
+        document.getElementById("startRecognition").addEventListener("click", function() {
+            startRecognition();
+        });
 
-        recognition1.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById("result1").textContent = transcript;
-        };
+        function startRecognition() {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.continuous = true; // Set to true for real-time transcription
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.start();
 
-        recognition2.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById("result2").textContent = transcript;
-        };
-
-        recognition1.start();
-        recognition2.start();
+            recognition.onresult = function(event) {
+                let transcript1 = '';
+                let transcript2 = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript1 += event.results[i][0].transcript;
+                    transcript2 += event.results[i][0].transcript;
+                }
+                document.getElementById("transcription1").textContent = "Transcription 1: " + transcript1;
+                document.getElementById("transcription2").textContent = "Transcription 2: " + transcript2;
+            };
+        }
     </script>
 </body>
 </html>
