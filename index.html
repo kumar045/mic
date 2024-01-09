@@ -49,7 +49,7 @@
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(function(stream) {
                         var liveSource = context.createMediaStreamSource(stream);
-                        var levelChecker = context.createScriptProcessor(1024, 1, 1);
+                        var levelChecker = context.createJavaScriptNode(1024, 1 ,1);
 
                         liveSource.connect(levelChecker);
                         levelChecker.connect(context.destination);
