@@ -9,7 +9,7 @@
             text-align: center;
             padding: 50px;
         }
-        #status {
+        #status, #transcript {
             color: green;
             margin-top: 20px;
         }
@@ -18,9 +18,9 @@
 <body>
     <h1>Speech Recognition and Audio Processing Demo</h1>
     <p id="status">Ready...</p>
+    <p id="transcript"></p>
 
     <script>
-        // Checking for browser compatibility
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!('webkitSpeechRecognition' in window) || !(AudioContext)) {
             alert('Your browser does not support the required features. Try using Google Chrome.');
@@ -31,12 +31,20 @@
             recognition.continuous = true;
             recognition.interimResults = true;
 
+            recognition.onresult = function(event) {
+                var transcript = '';
+                for (var i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                }
+                document.getElementById('transcript').textContent = transcript;
+            };
+
             recognition.onstart = function() {
                 var context = new AudioContext();
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(function(stream) {
                         var liveSource = context.createMediaStreamSource(stream);
-                        var levelChecker = context.createJavaScriptNode(1024, 1 ,1);
+                        var levelChecker = context.createScriptProcessor(1024, 1, 1);
 
                         liveSource.connect(levelChecker);
                         levelChecker.connect(context.destination);
@@ -48,18 +56,14 @@
                 that.isRunning(true);
             };
 
-            // Define the processAudio function
             that.processAudio = function(event) {
-                // Process audio data here
                 console.log(event);
             };
 
-            // Define the isRunning function
             that.isRunning = function(status) {
                 document.getElementById('status').textContent = status ? 'Running...' : 'Stopped';
             };
 
-            // Start recognition
             recognition.start();
         }
     </script>
