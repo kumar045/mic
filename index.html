@@ -32,7 +32,7 @@
             recognition.interimResults = true;
 
             recognition.onstart = function() {
-                var context = new webkitAudioContext();
+                var context = new AudioContext();
                 navigator.webkitGetUserMedia(
                     {
                         audio: true
