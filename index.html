@@ -26,7 +26,7 @@
         function startRecognition(instance) {
             if (instance === 1) {
                 recognition1 = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition1.continuous = false;
+                recognition1.continuous = true;
                 recognition1.interimResults = true;
                 recognition1.lang = 'en-US';
                 recognition1.start();
@@ -40,7 +40,7 @@
                 };
             } else if (instance === 2) {
                 recognition2 = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition2.continuous = false;
+                recognition2.continuous = true;
                 recognition2.interimResults = true;
                 recognition2.lang = 'en-US';
                 recognition2.start();
