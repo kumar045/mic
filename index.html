@@ -2,23 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Speech Recognition with Audio Context and Web Worker</title>
+    <title>Speech Recognition with MediaRecorder and Web Worker</title>
 </head>
 <body>
     <button id="startRecognition">Start Recognition</button>
     <p id="transcription">Transcription: </p>
 
     <script>
-        let recognition, audioContext, mediaStreamSource;
-        const worker = new Worker('worker.js'); // Path to your worker script
+        let recognition, mediaRecorder, audioBlob;
+        const worker = new Worker('worker.js');
 
         document.getElementById("startRecognition").addEventListener("click", function() {
             this.disabled = true;
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                mediaStreamSource = audioContext.createMediaStreamSource(stream);
-                // Additional audio context setup...
-
+            navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                // Initialize SpeechRecognition
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.continuous = false;
                 recognition.interimResults = true;
@@ -31,13 +29,28 @@
                         transcript += event.results[i][0].transcript;
                     }
                     document.getElementById("transcription").textContent = "Transcription: " + transcript;
-
-                    // Send data to the worker for processing
-                    worker.postMessage({ type: 'processTranscription', data: transcript });
                 };
 
                 recognition.onend = function() {
-                    document.getElementById("startRecognition").disabled = false;
+                    // Start MediaRecorder after speech recognition ends
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+
+                    let audioChunks = [];
+                    mediaRecorder.ondataavailable = function(event) {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = function() {
+                        audioBlob = new Blob(audioChunks, { 'type' : 'audio/wav' });
+                        worker.postMessage({ type: 'processAudio', data: audioBlob });
+                        audioChunks = [];
+                    };
+
+                    // Stop recording after 5 seconds
+                    setTimeout(() => {
+                        mediaRecorder.stop();
+                    }, 5000);
                 };
 
                 recognition.onerror = function(event) {
@@ -48,7 +61,6 @@
             });
         });
 
-        // Handle messages received from the worker
         worker.onmessage = function(event) {
             console.log('Message from worker:', event.data);
         };
