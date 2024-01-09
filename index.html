@@ -3,37 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech Recognition with Real-Time Transcriptions</title>
+    <title>Speech Recognition with Multiple Instances</title>
 </head>
 <body>
-    <button id="startRecognition">Start Recognition</button>
+    <button id="startRecognition1">Start Recognition 1</button>
     <p id="transcription1">Transcription 1: </p>
+    
+    <button id="startRecognition2">Start Recognition 2</button>
     <p id="transcription2">Transcription 2: </p>
 
     <script>
-        let recognition;
+        let recognition1, recognition2;
 
-        document.getElementById("startRecognition").addEventListener("click", function() {
-            startRecognition();
+        document.getElementById("startRecognition1").addEventListener("click", function() {
+            startRecognition(1);
         });
 
-        function startRecognition() {
-            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.continuous = true; // Set to true for real-time transcription
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-            recognition.start();
+        document.getElementById("startRecognition2").addEventListener("click", function() {
+            startRecognition(2);
+        });
 
-            recognition.onresult = function(event) {
-                let transcript1 = '';
-                let transcript2 = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    transcript1 += event.results[i][0].transcript;
-                    transcript2 += event.results[i][0].transcript;
-                }
-                document.getElementById("transcription1").textContent = "Transcription 1: " + transcript1;
-                document.getElementById("transcription2").textContent = "Transcription 2: " + transcript2;
-            };
+        function startRecognition(instance) {
+            if (instance === 1) {
+                recognition1 = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition1.continuous = false;
+                recognition1.interimResults = true;
+                recognition1.lang = 'en-US';
+                recognition1.start();
+
+                recognition1.onresult = function(event) {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById("transcription1").textContent = "Transcription 1: " + transcript;
+                };
+            } else if (instance === 2) {
+                recognition2 = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition2.continuous = false;
+                recognition2.interimResults = true;
+                recognition2.lang = 'en-US';
+                recognition2.start();
+
+                recognition2.onresult = function(event) {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById("transcription2").textContent = "Transcription 2: " + transcript;
+                };
+            }
         }
     </script>
 </body>
