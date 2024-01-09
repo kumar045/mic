@@ -9,9 +9,12 @@
             text-align: center;
             padding: 50px;
         }
-        #status, #transcript {
+        #status, #transcript, #audioData, #errorMsg {
             color: green;
             margin-top: 20px;
+        }
+        #errorMsg {
+            color: red;
         }
     </style>
 </head>
@@ -19,11 +22,13 @@
     <h1>Speech Recognition and Audio Processing Demo</h1>
     <p id="status">Ready...</p>
     <p id="transcript"></p>
+    <p id="audioData"></p>
+    <p id="errorMsg"></p>
 
     <script>
         var AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!('webkitSpeechRecognition' in window) || !(AudioContext)) {
-            alert('Your browser does not support the required features. Try using Google Chrome.');
+            document.getElementById('errorMsg').textContent = 'Your browser does not support the required features. Try using Google Chrome.';
         } else {
             var that = this;
             var recognition = new webkitSpeechRecognition();
@@ -44,20 +49,21 @@
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then(function(stream) {
                         var liveSource = context.createMediaStreamSource(stream);
-                        var levelChecker = context.createJavaScriptNode(1024, 1 ,1);
+                        var levelChecker = context.createScriptProcessor(1024, 1, 1);
 
                         liveSource.connect(levelChecker);
                         levelChecker.connect(context.destination);
                         levelChecker.onaudioprocess = that.processAudio;
                     })
                     .catch(function(err) {
-                        console.error('The following getUserMedia error occurred: ' + err);
+                        document.getElementById('errorMsg').textContent = 'The following getUserMedia error occurred: ' + err;
                     });
                 that.isRunning(true);
             };
 
             that.processAudio = function(event) {
-                console.log(event);
+                var audioDataText = 'Audio Data: ' + event.inputBuffer.getChannelData(0)[0];
+                document.getElementById('audioData').textContent = audioDataText;
             };
 
             that.isRunning = function(status) {
