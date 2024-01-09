@@ -2,12 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech Recognition with Audio Context</title>
-    <style>
-        button { margin: 10px; padding: 10px; }
-        #transcription { margin-top: 20px; padding: 10px; }
-    </style>
+    <title>Speech Recognition with Audio Context and Web Worker</title>
 </head>
 <body>
     <button id="startRecognition">Start Recognition</button>
@@ -15,18 +10,15 @@
 
     <script>
         let recognition, audioContext, mediaStreamSource;
+        const worker = new Worker('worker.js'); // Path to your worker script
 
         document.getElementById("startRecognition").addEventListener("click", function() {
             this.disabled = true;
             navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
-                // Initialize webkitAudioContext
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 mediaStreamSource = audioContext.createMediaStreamSource(stream);
+                // Additional audio context setup...
 
-                // Do something with the audio context and media stream source
-                // For example, you can connect it to an analyzer or other audio nodes
-
-                // Initialize SpeechRecognition
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.continuous = false;
                 recognition.interimResults = true;
@@ -39,6 +31,9 @@
                         transcript += event.results[i][0].transcript;
                     }
                     document.getElementById("transcription").textContent = "Transcription: " + transcript;
+
+                    // Send data to the worker for processing
+                    worker.postMessage({ type: 'processTranscription', data: transcript });
                 };
 
                 recognition.onend = function() {
@@ -52,6 +47,11 @@
                 console.error('getUserMedia error:', error);
             });
         });
+
+        // Handle messages received from the worker
+        worker.onmessage = function(event) {
+            console.log('Message from worker:', event.data);
+        };
     </script>
 </body>
 </html>
