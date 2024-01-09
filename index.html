@@ -22,7 +22,7 @@
 
     <script>
         // Checking for browser compatibility
-        if (!('webkitSpeechRecognition' in window) || !('webkitAudioContext' in window)) {
+        if (!('webkitSpeechRecognition' in window) || !('AudioContext' in window)) {
             alert('Your browser does not support the required features. Try using Google Chrome.');
         } else {
             var that = this;
