@@ -32,6 +32,19 @@
             flex-direction: column;
         }
 
+        #callText {
+            position: absolute;
+            bottom: 10px;
+            width: 80%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5em;
+            color: rgb(0, 47, 255);
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
         #phoneText {
             position: absolute;
             top: 10px;
@@ -84,6 +97,7 @@
 <div id="card">
     <div id="phoneText">Phone</div>
     <button id="startStopButton" onclick="toggleStartStop();">Call</button>
+    <div id="callText">Start Call</div>
 </div>
 
 <script>
