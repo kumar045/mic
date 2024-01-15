@@ -1,77 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Speech Recognition and Audio Processing</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+
+        #card {
+            position: relative;
+            width: 300px;
+            height: 600px;
+            background-color: white;
+            background-image: url('path_to_your_downloaded_glass_image.png'); /* Replace with your image path */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #phoneText {
+            position: absolute;
+            top: 10px;
+            width: 80%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
             text-align: center;
-            padding: 50px;
+            font-size: 1.5em;
+            color: rgb(0, 47, 255);
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        #status, #transcript, #audioData, #errorMsg {
-            color: green;
-            margin-top: 20px;
+
+        #startStopButton {
+            font-size: 2em;
+            padding: 15px;
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        #errorMsg {
-            color: red;
+
+        @media (max-width: 500px) {
+            #startStopButton {
+                font-size: 1.5em;
+
+                  width: 60px;
+                height: 60px;
+            }
+            #card {
+                width: 90%;
+                height: 90%;
+            }
+            #phoneText {
+                font-size: 1em; /* Adjust font size for smaller devices */
+            }
         }
     </style>
+    <title>Santa</title>
 </head>
 <body>
-    <h1>Speech Recognition and Audio Processing Demo</h1>
-    <p id="status">Ready...</p>
-    <p id="transcript"></p>
-    <p id="audioData"></p>
-    <p id="errorMsg"></p>
 
-    <script>
-        var AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!('webkitSpeechRecognition' in window) || !(AudioContext)) {
-            document.getElementById('errorMsg').textContent = 'Your browser does not support the required features. Try using Google Chrome.';
-        } else {
-            var that = this;
-            var recognition = new webkitSpeechRecognition();
+<div id="card">
+    <div id="phoneText">Phone</div>
+    <button id="startStopButton" onclick="toggleStartStop();">Call</button>
+</div>
 
-            recognition.continuous = true;
-            recognition.interimResults = true;
+<script>
+    let initialized = false;
+    let started = false;
+    let session = null;
+    let sending_message = false;
 
-            recognition.onresult = function(event) {
-                var transcript = '';
-                for (var i = event.resultIndex; i < event.results.length; ++i) {
-                    transcript += event.results[i][0].transcript;
-                }
-                document.getElementById('transcript').textContent = transcript;
-            };
+    try {
+        var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition || null;
+    } catch(e) {
+        document.querySelector("#startStopButton").textContent = "Sorry, your browser doesn't support speech recognition :(";
+    }
 
-            recognition.onstart = function() {
-                var context = new AudioContext();
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(function(stream) {
-                        var liveSource = context.createMediaStreamSource(stream);
-                        var levelChecker = context.createScriptProcessor(1024, 1, 1);
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-                        liveSource.connect(levelChecker);
-                        levelChecker.connect(context.destination);
-                        levelChecker.onaudioprocess = that.processAudio;
-                    })
-                    .catch(function(err) {
-                        document.getElementById('errorMsg').textContent = 'The following getUserMedia error occurred: ' + err;
-                    });
-                that.isRunning(true);
-            };
-
-            that.processAudio = function(event) {
-                var audioDataText = 'Audio Data: ' + event.inputBuffer.getChannelData(0)[0];
-                document.getElementById('audioData').textContent = audioDataText;
-            };
-
-            that.isRunning = function(status) {
-                document.getElementById('status').textContent = status ? 'Running...' : 'Stopped';
-            };
-
-            recognition.start();
+    const send_message = async (message) => {
+        if (sending_message) {
+            return false;
         }
-    </script>
+
+        sending_message = true;
+
+        const response = await fetch("http://127.0.0.1:5000/message", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "message": message,
+                "session": session
+            })
+        });
+
+        const json = await response.json();
+        session = json.session;
+        const duration = json.duration - 300;
+        const audio_uri = "data:audio/wav;base64," + json.audio;
+
+        const audio = new Audio(audio_uri);
+        setTimeout(() => {
+            sending_message = false;
+            if (started            ) {
+                recognition.start();
+            }
+        }, duration);
+
+        audio.play();
+    }
+
+    const toggleStartStop = () => {
+        if (!started) {
+            start();
+        } else {
+            stop();
+        }
+    };
+
+    const start = () => {
+        started = true;
+        recognition.start();
+        
+        const button = document.querySelector("#startStopButton");
+        button.style.background = 'red';
+        button.textContent = "End";
+
+        if (!initialized) {
+            initialized = true;
+
+            recognition.onresult = function (event) {
+                const message = event.results[0][0].transcript;
+                send_message(message);
+            };
+
+            recognition.onspeechend = function () {
+                recognition.stop();
+            };
+
+            recognition.onerror = function (event) {
+                console.error(event.error);
+            };
+        }
+    };
+
+    const stop = () => {
+        recognition.stop();
+        
+        const button = document.querySelector("#startStopButton");
+        button.style.background = 'green';
+        button.textContent = "Call";
+
+        started = false;
+    }
+</script>
 </body>
 </html>
+
+          
