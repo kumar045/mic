@@ -107,7 +107,7 @@ async function sendMessage() {
   if (text) {
     addMessage(text, 'human');
     
-    const response = await fetch("http://127.0.0.1:5000/chat", {
+    const response = await fetch("https://simplified-assistant.onrender.com/chat", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
