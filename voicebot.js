@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         sending_message = true;
 
-        const response = await fetch("http://127.0.0.1:5000/message", {
+        const response = await fetch("http://127.0.0.1:5000/voice", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
