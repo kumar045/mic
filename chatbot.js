@@ -84,7 +84,7 @@ function addStyles() {
     }
   `;
 }
-
+let session = null;
 function createMessageElement(text, sender) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
@@ -99,15 +99,34 @@ function addMessage(text, sender) {
   chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the latest message
 }
 
-function sendMessage() {
+async function sendMessage() {
   const input = document.querySelector('.chat-input');
   const text = input.value.trim();
+  console.log(text)
+
   if (text) {
     addMessage(text, 'human');
+    
+    const response = await fetch("http://127.0.0.1:5000/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            "message": text,
+            "session": session
+        })
+    });
+
+    const jsonResponse = await response.json(); // Use a different variable name here
+    session = jsonResponse.session;
+    const botResponse = jsonResponse.response; // Store the response text in a separate variable
+    
     input.value = '';
-    setTimeout(() => addMessage('This is a bot reply.', 'bot'), 500);
+    setTimeout(() => addMessage(botResponse, 'bot'), 500); // Use the separate variable for the bot's message
   }
 }
+
 
 function toggleChat() {
   const chatContainer = document.querySelector('.chat-container');
