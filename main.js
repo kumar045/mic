@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         .icon-container {
             position: fixed;
-            left: 10px;
+            right: 10px; /* Adjust position */
             bottom: 10px;
             cursor: pointer;
             z-index: 9999; /* Ensure the icon is on top */
@@ -457,4 +457,3 @@ document.addEventListener("DOMContentLoaded", function() {
     // Build the text chat interface
     buildChatInterface();
 });
-        
