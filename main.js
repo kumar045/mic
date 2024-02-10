@@ -377,7 +377,6 @@ document.addEventListener("DOMContentLoaded", function() {
     async function sendMessage() {
         const input = document.querySelector('.chat-input');
         const text = input.value.trim();
-        console.log(text)
 
         if (text) {
             addMessage(text, 'human');
