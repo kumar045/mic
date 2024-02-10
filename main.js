@@ -140,10 +140,10 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(iconContainer);
 
     // Create and append voice chat icon
-    var icon = document.createElement('img');
-    icon.src = 'https://i.ibb.co/x2Znbr6/free-chat-2639493-2187526.png'; // Replace with your icon path
-    icon.className = 'icon';
-    iconContainer.appendChild(icon);
+    var voiceIcon = document.createElement('img');
+    voiceIcon.src = 'https://i.ibb.co/x2Znbr6/free-chat-2639493-2187526.png'; // Replace with your icon path
+    voiceIcon.className = 'icon';
+    iconContainer.appendChild(voiceIcon);
 
     // Dropdown menu for icon
     var iconDropdown = document.createElement('div');
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function() {
     iconDropdown.appendChild(chatBotOption);
 
     // Icon click event to open the voice chat card
-    icon.addEventListener('click', function() {
+    voiceIcon.addEventListener('click', function() {
         card.classList.toggle('open');
     });
 
