@@ -457,3 +457,4 @@ document.addEventListener("DOMContentLoaded", function() {
     // Build the text chat interface
     buildChatInterface();
 });
+        
