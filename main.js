@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         sending_message = true;
 
-        const response = await fetch("http://127.0.0.1:5000/voice", {
+        const response = await fetch("https://simplified-assistant.onrender.com/voice", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -344,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (text) {
             addMessage(text, 'human');
             
-            const response = await fetch("http://127.0.0.1:5000/chat", {
+            const response = await fetch("https://simplified-assistant.onrender.com/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
