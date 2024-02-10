@@ -29,7 +29,6 @@ document.addEventListener("DOMContentLoaded", function() {
             align-items: center;
             flex-direction: column;
             transition: right 0.5s;
-            z-index: 9998; /* Ensure voice chat card is below the icon container */
         }
         .card.open {
             right: 0; /* Slide in */
@@ -68,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         .icon-container {
             position: fixed;
-            right: 10px; /* Adjust position */
+            left: 10px;
             bottom: 10px;
             cursor: pointer;
             z-index: 9999; /* Ensure the icon is on top */
@@ -76,6 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .icon {
             width: 50px;
             height: 50px;
+            display: none; /* Initially hide the icons */
         }
         .icon-dropdown {
             display: none;
@@ -284,7 +284,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
                 display: none; 
                 flex-direction: column; 
-                z-index: 9999; /* Ensure chat interface is on top */
             }
             .chat-header { 
                 background: #4e8cff; 
