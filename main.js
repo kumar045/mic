@@ -65,14 +65,36 @@ document.addEventListener("DOMContentLoaded", function() {
             justify-content: center;
             align-items: center;
         }
-        .icon {
+        .icon-container {
             position: fixed;
             left: 10px;
             bottom: 10px;
             cursor: pointer;
-            widht: 50px;
-            height: 50px;
             z-index: 9999; /* Ensure the icon is on top */
+        }
+        .icon {
+            width: 50px;
+            height: 50px;
+        }
+        .icon-dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+        .icon-container:hover .icon-dropdown {
+            display: block;
+        }
+        .icon-option {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .icon-option:hover {
+            background-color: #f0f0f0;
         }
         @media (max-width: 500px) {
             .startStopButton {
@@ -97,19 +119,6 @@ document.addEventListener("DOMContentLoaded", function() {
     card.className = 'card';
     document.body.appendChild(card);
 
-    // Create and append voice chat icon
-    var icon = document.createElement('img');
-    icon.src = 'https://i.ibb.co/x2Znbr6/free-chat-2639493-2187526.png'; // Replace with your icon path
-    icon.className = 'icon';
-    document.body.appendChild(icon);
-
-    // Create and append phoneText for voice chat
-    var phoneText = document.createElement('div');
-    phoneText.id = 'phoneText';
-    phoneText.className = 'phoneText';
-    phoneText.textContent = 'Phone';
-    card.appendChild(phoneText);
-
     // Create and append startStopButton for voice chat
     var startStopButton = document.createElement('button');
     startStopButton.id = 'startStopButton';
@@ -123,6 +132,33 @@ document.addEventListener("DOMContentLoaded", function() {
     callText.className = 'callText';
     callText.textContent = 'Start Call';
     card.appendChild(callText);
+
+    // Icon container for dropdown menu
+    var iconContainer = document.createElement('div');
+    iconContainer.className = 'icon-container';
+    document.body.appendChild(iconContainer);
+
+    // Create and append voice chat icon
+    var icon = document.createElement('img');
+    icon.src = 'https://i.ibb.co/x2Znbr6/free-chat-2639493-2187526.png'; // Replace with your icon path
+    icon.className = 'icon';
+    iconContainer.appendChild(icon);
+
+    // Dropdown menu for icon
+    var iconDropdown = document.createElement('div');
+    iconDropdown.className = 'icon-dropdown';
+    iconContainer.appendChild(iconDropdown);
+
+    // Create and append options for dropdown menu
+    var voiceBotOption = document.createElement('div');
+    voiceBotOption.className = 'icon-option';
+    voiceBotOption.textContent = 'Voice Bot';
+    iconDropdown.appendChild(voiceBotOption);
+
+    var chatBotOption = document.createElement('div');
+    chatBotOption.className = 'icon-option';
+    chatBotOption.textContent = 'Chat Bot';
+    iconDropdown.appendChild(chatBotOption);
 
     // Icon click event to open the voice chat card
     icon.addEventListener('click', function() {
