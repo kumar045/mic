@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", function() {
             align-items: center;
             flex-direction: column;
             transition: right 0.5s;
+            z-index: 9998; /* Ensure voice chat card is below the icon container */
         }
         .card.open {
             right: 0; /* Slide in */
@@ -202,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         const json = await response.json();
-        voiceSession = json.session; // Updated to voiceSession
+        voiceSession = json.session;
         const duration = json.duration - 300;
         const audio_uri = "data:audio/wav;base64," + json.audio;
 
@@ -283,6 +284,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
                 display: none; 
                 flex-direction: column; 
+                z-index: 9999; /* Ensure chat interface is on top */
             }
             .chat-header { 
                 background: #4e8cff; 
